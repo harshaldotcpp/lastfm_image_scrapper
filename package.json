@@ -1,0 +1,11 @@
+{
+  "name": "lastfm_image_scrapper",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "cjs",
+  "dependencies": {
+    "chromium": "^3.0.3",
+    "puppeteer": "^6.0.0"
+  }
+}
