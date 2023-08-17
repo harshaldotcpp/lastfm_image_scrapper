@@ -4,7 +4,7 @@ const cheerio = require("cheerio");
 
 
 
-async function getArtistImage(artistName,count){
+async function getArtistImages(artistName,count){
 
     let srcArray= [];
 
@@ -46,5 +46,8 @@ async function getNumberOfImagesPage(artistName){
 
     return (parseInt($(pages[pages.length - 1]).find("a").text().replace(/ /g, "")));
 }
+
+
+exports.getArtistImages = getArtistImages;
 
 
