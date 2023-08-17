@@ -5,7 +5,6 @@
   "license": "MIT",
   "type": "cjs",
   "dependencies": {
-    "chromium": "^3.0.3",
     "puppeteer": "^6.0.0"
   }
 }

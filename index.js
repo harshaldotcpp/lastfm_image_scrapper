@@ -2,15 +2,23 @@ const  puppeteer =  require("puppeteer");
 
 
 const browserPath = "/usr/bin/chromium";
-const artist_name = "daft punk";
+const artist_name = "coldplay";
+const args =  [ 
+    '--disable-gpu', 
+    '--disable-setuid-sandbox', 
+    '--no-sandbox', 
+    '--no-zygote', 
+]
 
 
 async function getArtistImages(browserPath,artist_name){ 
+
    let browser; 
+   const imageSrc = []
    try{
        browser = await puppeteer.launch({
            executablePath: browserPath,
-           args: [ '--disable-gpu', '--disable-setuid-sandbox', '--no-sandbox', '--no-zygote' ],
+           args: args,
            headless: true,
            defaultViewport: false,
     
@@ -28,31 +36,29 @@ async function getArtistImages(browserPath,artist_name){
       
        const imagesHandler = await page.$$(".sidebar-image-list-image");
        let i = 1;
-       const imageSrc = []
        for(const imageHandler of imagesHandler){
           if(i > 10) break;
      
-           imageSrc.push(await page.evaluate((image)=>{
+           const src = await page.evaluate((image)=>{
                return image.getAttribute("src");
-           },imageHandler) + ".jpg");
+           },imageHandler) + ".jpg"
+           ;
+           imageSrc.push(src.replace("avatar170s","900x900"));
           
-       }
+        }
+        console.log("Work Done :)"); 
        
-      
-       console.log("Work Done :)"); 
-       
-       browser.close();
-       return imageSrc;
-     
-     
     }
    catch(error){
        console.log(error);
-       process.exit();
+       browser?.close();
+       return imageSrc;
    }
- 
+
+    browser?.close();
+    return imageSrc;
 }
 
 
-//getArtistImages(browserPath,artist_name);
 exports.getArtistImages = getArtistImages;
+
