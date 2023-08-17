@@ -1,64 +1,50 @@
-const  puppeteer =  require("puppeteer");
+const axios = require("axios");
+const cheerio = require("cheerio");
 
 
-const browserPath = "/usr/bin/chromium";
-const artist_name = "coldplay";
-const args =  [ 
-    '--disable-gpu', 
-    '--disable-setuid-sandbox', 
-    '--no-sandbox', 
-    '--no-zygote', 
-]
 
 
-async function getArtistImages(browserPath,artist_name){ 
+async function getArtistImage(artistName,count){
 
-   let browser; 
-   const imageSrc = []
-   try{
-       browser = await puppeteer.launch({
-           executablePath: browserPath,
-           args: args,
-           headless: true,
-           defaultViewport: false,
-    
-       }); 
-       
-       const page = await browser.newPage();
-       console.log("browser launched...")
-        
-       await page.goto(`https://last.fm/music/${artist_name}`,{
-           waitUntil: ['load', 'domcontentloaded']
-        }); 
-        console.log("page opened..."); 
-        
-        
-      
-       const imagesHandler = await page.$$(".sidebar-image-list-image");
-       let i = 1;
-       for(const imageHandler of imagesHandler){
-          if(i > 10) break;
-     
-           const src = await page.evaluate((image)=>{
-               return image.getAttribute("src");
-           },imageHandler) + ".jpg"
-           ;
-           imageSrc.push(src.replace("avatar170s","900x900"));
-          
+    let srcArray= [];
+
+    try{
+    const pages_no = await  getNumberOfImagesPage(artistName);
+
+    loop1:
+    for(let i=1; i<=pages_no; i++){
+
+        const { data } = await axios.get(`https://last.fm/music/${artistName}/+images?page=${i}`);
+        const $ = cheerio.load(data);
+        const images = $("li.image-list-item-wrapper img");
+
+        loop2:
+        for(let i=0; i<images.length; i++){
+            if(count === i) break loop1;
+            const image = images[i];
+            let src = $(image).attr("src")
+            src = src.replace("avatar170s/","");
+            srcArray.push(src);
         }
-        console.log("Work Done :)"); 
-       
     }
-   catch(error){
-       console.log(error);
-       browser?.close();
-       return imageSrc;
-   }
 
-    browser?.close();
-    return imageSrc;
+    } catch(e){
+        console.log(e);
+        return srcArray;
+    }
+    return srcArray;
+
 }
 
 
-exports.getArtistImages = getArtistImages;
+async function getNumberOfImagesPage(artistName){
+    const { data } = await axios.get(`https://last.fm/music/${artistName}/+images`);
+    const $ = cheerio.load(data);
+
+    const pages = $("li.pagination-page")
+    if(pages.length === 0) return 1;
+
+    return (parseInt($(pages[pages.length - 1]).find("a").text().replace(/ /g, "")));
+}
+
 
